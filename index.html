@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wedding Wishes</title>
   <style>
+    /* Same styles as before */
     body {
       font-family: Arial, sans-serif;
       background-color: #f9f5f3;
@@ -76,6 +77,9 @@
       font-size: 1em;
     }
   </style>
+  <!-- Include Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js"></script>
 </head>
 <body>
   <header>
@@ -102,30 +106,58 @@
   </div>
 
   <script>
-    // Handle the form submission
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBNW93Xqqdbk13m5itJUbOr3H965TrFryQ",
+    authDomain: "wedding-wishes-9b5af.firebaseapp.com",
+    databaseURL: "https://wedding-wishes-9b5af-default-rtdb.firebaseio.com",
+    projectId: "wedding-wishes-9b5af",
+    storageBucket: "wedding-wishes-9b5af.firebasestorage.app",
+    messagingSenderId: "725038230937",
+    appId: "1:725038230937:web:be04f32759e48bf310b708",
+    measurementId: "G-Z90LB06X2C"
+
+    };
+
+    // Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+    // References
     const wishForm = document.getElementById('wishForm');
     const wishesContainer = document.getElementById('wishesContainer');
 
+    // Add a wish to Firebase
     wishForm.addEventListener('submit', function (event) {
-      event.preventDefault(); // Prevent form from refreshing the page
+      event.preventDefault();
 
-      // Get input values
       const name = document.getElementById('name').value;
       const wish = document.getElementById('wish').value;
 
-      // Create a new wish element
-      const wishElement = document.createElement('div');
-      wishElement.classList.add('wish');
-      wishElement.innerHTML = `
-        <h4>${name}</h4>
-        <p>${wish}</p>
-      `;
-
-      // Add the new wish to the wishes container
-      wishesContainer.appendChild(wishElement);
+      // Push the wish to Firebase
+      const newWishKey = database.ref().child('wishes').push().key;
+      database.ref('wishes/' + newWishKey).set({
+        name: name,
+        wish: wish
+      });
 
       // Clear the form
       wishForm.reset();
+    });
+
+    // Fetch wishes from Firebase
+    database.ref('wishes').on('value', function (snapshot) {
+      wishesContainer.innerHTML = '<h3>Guest Wishes:</h3>';
+      snapshot.forEach(function (childSnapshot) {
+        const wishData = childSnapshot.val();
+        const wishElement = document.createElement('div');
+        wishElement.classList.add('wish');
+        wishElement.innerHTML = `
+          <h4>${wishData.name}</h4>
+          <p>${wishData.wish}</p>
+        `;
+        wishesContainer.appendChild(wishElement);
+      });
     });
   </script>
 </body>
